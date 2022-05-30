@@ -80,7 +80,7 @@ s.waitForBoot({
 		/* ----- Buffers ----- */
 		// ~inputBuffer = Buffer.read(s, thisProcess.nowExecutingPath.dirname +/+ "loops/Gm Let Me Love You.wav");
 		/* ----- Serial ----- */
-		~serialMidiNote = 53;
+		~serialMidiNote = 52;
 		~serialMidiMessage = 1;
 		/* ----- MIDI ----- */
 		~midiPortNumber = 0;
@@ -93,7 +93,7 @@ s.waitForBoot({
 		~midiChannel = 0;
 		/* ----- OSC ----- */
 		~oscNetAddrProcessing = NetAddr.new("127.0.0.1", 7777);
-		~oscNetAddrTouchOSC = NetAddr.new("127.0.0.1", 7777);
+		~oscNetAddrTouchOSC = NetAddr.new("127.0.0.1", 9000);
 		~keyNum = 0;
 		~keysLabels = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 		~scaleNum = 0;
@@ -122,7 +122,6 @@ s.waitForBoot({
 		~feedbackModeNum = 0;
 		~feedbackModesLabels = [ 'Normal Feedback', 'Pitch Feedback', 'Cross Feedback' ];
 	);
-
 	/* ----- Sound Input -----
 	Reads the audio from the hardware input
 	an writes it to inputAudioBus */
@@ -145,36 +144,61 @@ s.waitForBoot({
 	);
 
 	/* ----- Wavatable Synth ----- */
-	~myBuffer1 = Buffer.alloc(s, 2048);
-	~myBuffer2 = Buffer.alloc(s, 2048);
 	(
 		c = SynthDef.new(\synth, { arg lpfCutoff = 180, hpfCutoff = 120 , lfoFreq = 10, lfoAmp = 0.075, sinTableGain = 1, chebTableGain = 0.5, lpfResonance = 1, hpfResonance = 1;
-			var midiNote, gate, lfo, env, gen, adsrA = 0.1, adsrD = 0.05, adsrS = 0.5, adsrR=1.0, adsrPeak = 1.0, sineSignal, chebSignal, soundSin, soundCheb, synthSignal, wavetable1, wavetable2;
+			var midiNote, gate, lfo, env, gen, adsrA = 0.1, adsrD = 0.05, adsrS = 0.5, adsrR=1.0, adsrPeak = 1.0, sineSignal, chebSignal, soundSin, soundCheb, sinBuffer, chebBuffer, synthSignal;
 
 			midiNote = In.kr(~serialMidiNoteControlBus, 1);
 			gate = In.kr(~serialMidiMessageControlBus, 1); // (0: NoteOff - 1: NoteOn)
 
-			// LFO
-			lfo = SinOsc.kr(lfoFreq, 0, lfoAmp, 1);
+			/* ----- Wavatables ----- */
+			// Sine Wavetable
+			sineSignal = Signal.sineFill(
+				size: 1024,
+				amplitudes: [1, 1/4, 1/6, 1/2, 4/5, 1/6],
+				phases: 0!6
+			);
+			sinBuffer = LocalBuf.new(numFrames: 2048, numChannels: 1);
+			sinBuffer.set(sineSignal.asWavetable);
+			soundSin = Osc.ar(
+				bufnum: sinBuffer,
+				freq: midiNote.midicps,
+				mul: sinTableGain
+			);
+			// Chebyshev Wavetable
+			chebSignal = Signal.chebyFill(
+				size: 1024,
+				amplitudes: [1, 1/2, 1/6, 1/2, 1/8, 1/4],
+				normalize: true
+			);
+			chebBuffer = LocalBuf.new(numFrames: 2048, numChannels: 1);
+			chebBuffer.set(chebSignal.asWavetable);
+			soundCheb = Osc.ar(
+				bufnum: chebBuffer,
+				freq: midiNote.midicps,
+				mul: chebTableGain
+			);
 
-			//ADSR Definition
-			env = Env.adsr(attackTime: adsrA, decayTime: adsrD, sustainLevel: adsrS, releaseTime: adsrR, peakLevel: adsrPeak, curve: -4.0, bias: 0.0);
+			/* ----- Envelope Generator ----- */
+			env = Env.adsr(
+				attackTime: adsrA,
+				decayTime: adsrD,
+				sustainLevel: adsrS,
+				releaseTime: adsrR,
+				peakLevel: adsrPeak,
+				curve: -4.0,
+				bias: 0.0
+			);
 			gen = EnvGen.kr(env, gate);
 
-			// WAVETABLES
-			sineSignal = Signal.sineFill(1024, [1, 1/4, 1/6, 1/2, 4/5, 1/6], 0!6);
-			chebSignal = Signal.chebyFill(1024, [1, 1/2, 1/6, 1/2, 1/8, 1/4], true);
-			wavetable1 = sineSignal.asWavetable;
-			~myBuffer1.loadCollection(wavetable1);
-			wavetable2 = chebSignal.asWavetable;
-			~myBuffer2.loadCollection(wavetable2);
-			soundSin = Osc.ar(~myBuffer1, midiNote.midicps, mul: sinTableGain);
-			soundCheb = Osc.ar(~myBuffer2, midiNote.midicps, mul: chebTableGain);
+			/* ----- LFO ----- */
+			lfo = SinOsc.kr(freq: lfoFreq, phase: 0, mul: lfoAmp, add: 1);
+
 			synthSignal = Mix.ar([soundSin, soundCheb]) * gen;
 
-			// FILTERS
-			synthSignal = RLPF.ar(synthSignal, lpfCutoff * lfo, lpfResonance);
-			synthSignal = RHPF.ar(synthSignal, hpfCutoff * lfo, hpfResonance);
+			/* ----- Filters ----- */
+			synthSignal = RLPF.ar(synthSignal, lpfCutoff, lpfResonance);
+			synthSignal = RHPF.ar(synthSignal, hpfCutoff, hpfResonance);
 
 			Out.ar(~inputAudioBus, synthSignal);
 		}).add;
@@ -207,7 +231,6 @@ s.waitForBoot({
 				overlap: 1024,
 				smallCutoff: 0
 			);*/
-			freq.poll;
 			Out.kr(~pitchDetectionControlBus, freq);
 		}).add
 	);
@@ -249,7 +272,7 @@ s.waitForBoot({
 			// Get the index of the root note
 			rootIndex = DetectIndex.kr(freqsLocBuffer, referenceFreq);
 			// Rotate the scale array so the root note is in the first position
-			rotatedScale = Select.kr(((0..scale.size - 1) - (rootIndex + 1)).wrap(0, scale.size), scale);
+			rotatedScale = Select.kr(((0..(scale.size - 1)) + rootIndex).wrap(0, scale.size), scale);
 			// Get the interval selected for the voice
 			voiceInterval = In.kr(Select.kr(channelIndex, ~voiceIntervalBusses), 1);
 			// Use the interval as index to get the correspondent mask
@@ -266,6 +289,11 @@ s.waitForBoot({
 			pitchRatio = Select.kr(octaveUpDown, [pitchRatio, -1*pitchRatio]);
 
 			// DEBUG
+			//rootIndex.poll; -> 2
+			//(scale.size - 1).poll; -> 6
+			//(0..(scale.size - 1)).poll; -> [0, 1, 2, 3, 4, 5, 6]
+			//((0..(scale.size - 1)) + 2).poll; -> [2, 3, 4, 5, 6, 7, 8]
+			//((0..(scale.size - 1)) + rootIndex).wrap(0, scale.size).poll;
 			//rootIndex.poll((HPZ1.kr(rootIndex).abs > 0) + Impulse.kr(0));
 			//rotatedScale.poll;
 			//voiceInterval.poll((HPZ1.kr(voiceInterval).abs > 0) + Impulse.kr(0));
@@ -1103,6 +1131,25 @@ s.waitForBoot({
 				);
 
 				/* ----- Synth - Touch OSC comunication ----- */
+
+				// wavetable Gain
+				n.sendMsg("/synthPad/synth1/gain", 1);
+				n.sendMsg("/synthPad/synth2/gain", 1);
+
+				// filters
+				n.sendMsg("/filters/lowPass/cutOffFrequency", 20);
+				n.sendMsg("/filters/lowPass/resonance", 1);
+				n.sendMsg("/filters/highPass/cutOffFrequency", 200);
+				n.sendMsg("/filters/highPass/resonance", 1);
+
+				// Reverb
+				n.sendMsg("/reverb/dryWet", 0);
+				n.sendMsg("/reverb/roomSize", 0);
+				n.sendMsg("/reverb/highDamp", 0);
+
+				// LFO
+				n.sendMsg("/lfo/amplitude", 0);
+				n.sendMsg("/lfo/frequency", 0);
 
 				// LPFCutoff
 				OSCdef.new(
