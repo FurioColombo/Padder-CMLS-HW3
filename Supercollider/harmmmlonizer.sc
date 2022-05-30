@@ -82,15 +82,6 @@ s.waitForBoot({
 		/* ----- Serial ----- */
 		~serialMidiNote = 52;
 		~serialMidiMessage = 1;
-		/* ----- MIDI ----- */
-		~midiPortNumber = 0;
-		//~midiPortName = "Microsoft GS Wavetable Synth"; // Change with your MIDI port name
-		MIDIClient.init;
-		MIDIClient.destinations;
-		~midiOut = MIDIOut.new(~midiPortNumber);
-		//~midiOut = MIDIOut.newByName(~midiPortName); // Uncomment to use MIDI port by name
-		~midiOut.latency = 0;
-		~midiChannel = 0;
 		/* ----- OSC ----- */
 		~oscNetAddrProcessing = NetAddr.new("127.0.0.1", 7777);
 		~oscNetAddrTouchOSC = NetAddr.new("127.0.0.1", 9000);
@@ -878,7 +869,15 @@ s.waitForBoot({
 			});
 
 			window.front;
-			window.onClose_({x.free; o.free; voiceChannelsGroup.freeAll; outputMixer.free; Server.killAll; SerialPort.closeAll; });
+			window.onClose_({
+				x.free;
+				o.free;
+				voiceChannelsGroup.freeAll;
+				outputMixer.free;
+				~oscNetAddrProcessing.disconnect;
+				~oscNetAddrTouchOSC.disconnect;
+				Server.killAll;
+				SerialPort.closeAll; });
 
 
 			/* ----- Harmonizer - Touch OSC comunication ----- */
@@ -891,6 +890,10 @@ s.waitForBoot({
 			~oscNetAddrTouchOSC.sendMsg("/harmonizer/pitchShifter/formantRatio", 1);
 			~oscNetAddrTouchOSC.sendMsg("/harmonizer/pitchShifter/grainsPeriod", 2);
 			~oscNetAddrTouchOSC.sendMsg("/harmonizer/pitchShifter/timeDispersion", 1);
+			~oscNetAddrTouchOSC.sendMsg("/reverb/dryWet", 0);
+			~oscNetAddrTouchOSC.sendMsg("/reverb/roomSize", 0);
+			~oscNetAddrTouchOSC.sendMsg("/reverb/highDamp", 0);
+
 
 			/* ----- Master ----- */
 			/* ----- Gain ----- */
@@ -918,6 +921,47 @@ s.waitForBoot({
 					msg.postln;
 				},
 				'/master/dryWet'
+			);
+
+			/* ----- Reverb ----- */
+			/* ----- Dry/Wet ----- */
+			OSCdef.new(
+				\reverbDryWet,
+				{
+					arg msg;
+					var val;
+					val = msg[1];
+					c.set(\reverbMix, val);
+					~oscNetAddrTouchOSC.sendMsg("/reverb/dryWet", val.round(0.01));
+					msg.postln;
+				},
+				'/reverb/dryWet'
+			);
+			/* ----- Room Dimension ----- */
+			OSCdef.new(
+				\reverbRoomSize,
+				{
+					arg msg;
+					var val;
+					val = msg[1];
+					c.set(\roomDimension, val);
+					~oscNetAddrTouchOSC.sendMsg("/reverb/roomSize", val.round(0.01));
+					msg.postln;
+				},
+				'/reverb/roomSize'
+			);
+			/* ----- Reverb High Damps ----- */
+			OSCdef.new(
+				\reverbHighDampValue,
+				{
+					arg msg;
+					var val;
+					val = msg[1];
+					c.set(\reverbHighDamp, val);
+					~oscNetAddrTouchOSC.sendMsg("/reverb/highDamp", val.round(0.01));
+					msg.postln;
+				},
+				'/reverb/highDamp'
 			);
 
 			/* ----- Pitch Shifter ----- */
@@ -1130,175 +1174,124 @@ s.waitForBoot({
 					("/harmonizer/voice" ++ (index + 1) ++ "/feedbackMode").asSymbol;
 				);
 
-				/* ----- Synth - Touch OSC comunication ----- */
+				/* ----- nth - Touch OSC comunication ----- */
 
-				// wavetable Gain
-				n.sendMsg("/synthPad/synth1/gain", 1);
-				n.sendMsg("/synthPad/synth2/gain", 1);
+				/* ----- Default Parameters ----- */
+				~oscNetAddrTouchOSC.sendMsg("/synthPad/synth1/gain", 1);
+				~oscNetAddrTouchOSC.sendMsg("/synthPad/synth2/gain", 1);
+				~oscNetAddrTouchOSC.sendMsg("/filters/lowPass/cutOffFrequency", 20);
+				~oscNetAddrTouchOSC.sendMsg("/filters/lowPass/resonance", 1);
+				~oscNetAddrTouchOSC.sendMsg("/filters/highPass/cutOffFrequency", 200);
+				~oscNetAddrTouchOSC.sendMsg("/filters/highPass/resonance", 1);
+				~oscNetAddrTouchOSC.sendMsg("/lfo/amplitude", 0);
+				~oscNetAddrTouchOSC.sendMsg("/lfo/frequency", 0);
 
-				// filters
-				n.sendMsg("/filters/lowPass/cutOffFrequency", 20);
-				n.sendMsg("/filters/lowPass/resonance", 1);
-				n.sendMsg("/filters/highPass/cutOffFrequency", 200);
-				n.sendMsg("/filters/highPass/resonance", 1);
-
-				// Reverb
-				n.sendMsg("/reverb/dryWet", 0);
-				n.sendMsg("/reverb/roomSize", 0);
-				n.sendMsg("/reverb/highDamp", 0);
-
-				// LFO
-				n.sendMsg("/lfo/amplitude", 0);
-				n.sendMsg("/lfo/frequency", 0);
-
-				// LPFCutoff
+				/* ----- LP Filter ----- */
+				/* ----- CutOff Frequency ----- */
 				OSCdef.new(
 					\lowPassFilterCutOff,
 					{
 						arg msg;
 						var val;
 						val = msg[1];
-						c.set(\lpfCutoff, val); //todo: setSynth name to the definitive name
+						c.set(\lpfCutoff, val);
 						~oscNetAddrTouchOSC.sendMsg("/filters/lowPass/cutOffFrequency", val.round(0.01));
 						msg.postln;
 					},
 					'/filters/lowPass/cutOffFrequency'
 				);
-
-				// HPFCutoff
-				OSCdef.new(
-					\highPassFilterCutOff,
-					{
-						arg msg;
-						var val;
-						val = msg[1];
-						c.set(\hpfCutoff, val); //todo: setSynth name to the definitive name
-						~oscNetAddrTouchOSC.sendMsg("/filters/highPass/cutOffFrequency", val.round(0.01));
-						msg.postln;
-					},
-					'/filters/highPass/cutOffFrequency'
-				);
-
+				/* ----- Resonance ----- */
 				OSCdef.new(
 					\lowPassFilterResonance,
 					{
 						arg msg;
 						var val;
 						val = msg[1];
-						c.set(\lpfResonance, val); //todo: setSynth name to the definitive name
+						c.set(\lpfResonance, val);
 						~oscNetAddrTouchOSC.sendMsg("/filters/lowPass/resonance", val.round(0.01));
 						msg.postln;
 					},
 					'/filters/lowPass/resonance'
 				);
 
-				// HPFCutoff
+				/* ----- HP Filter ----- */
+				/* ----- CutOff Frequency ----- */
+				OSCdef.new(
+					\highPassFilterCutOff,
+					{
+						arg msg;
+						var val;
+						val = msg[1];
+						c.set(\hpfCutoff, val);
+						~oscNetAddrTouchOSC.sendMsg("/filters/highPass/cutOffFrequency", val.round(0.01));
+						msg.postln;
+					},
+					'/filters/highPass/cutOffFrequency'
+				);
+				/* ----- Resonance ----- */
 				OSCdef.new(
 					\highPassFilterResonance,
 					{
 						arg msg;
 						var val;
 						val = msg[1];
-						c.set(\hpfResonance, val); //todo: setSynth name to the definitive name
+						c.set(\hpfResonance, val);
 						~oscNetAddrTouchOSC.sendMsg("/filters/highPass/resonance", val.round(0.01));
 						msg.postln;
 					},
 					'/filters/highPass/resonance'
 				);
 
-				// Reverb Mix
-				OSCdef.new(
-					\reverbDryWet,
-					{
-						arg msg;
-						var val;
-						val = msg[1];
-						c.set(\reverbMix, val); //todo: setSynth name to the definitive name
-						~oscNetAddrTouchOSC.sendMsg("/reverb/dryWet", val.round(0.01));
-						msg.postln;
-					},
-					'/reverb/dryWet'
-				);
-
-				// Reverb Room Dimension
-				OSCdef.new(
-					\reverbRoomSize,
-					{
-						arg msg;
-						var val;
-						val = msg[1];
-						c.set(\roomDimension, val); //todo: setSynth name to the definitive name
-						~oscNetAddrTouchOSC.sendMsg("/reverb/roomSize", val.round(0.01));
-						msg.postln;
-					},
-					'/reverb/roomSize'
-				);
-
-				// Reverb Highs damp
-				OSCdef.new(
-					\reverbHighDampValue,
-					{
-						arg msg;
-						var val;
-						val = msg[1];
-						c.set(\reverbHighDamp, val); //todo: setSynth name to the definitive name
-						~oscNetAddrTouchOSC.sendMsg("/reverb/highDamp", val.round(0.01));
-						msg.postln;
-					},
-					'/reverb/highDamp'
-				);
-
-				// LFO frequency
+				/* ----- LFO ----- */
+				/* ----- Frequency ----- */
 				OSCdef.new(
 					\lfoFrequency,
 					{
 						arg msg;
 						var val;
 						val = msg[1];
-						c.set(\lfoFreq, val); //todo: setSynth name to the definitive name
+						c.set(\lfoFreq, val);
 						~oscNetAddrTouchOSC.sendMsg("/lfo/frequency", val.round(0.01));
 						msg.postln;
 					},
 					'/lfo/frequency'
 				);
-
-
-				// LFO amplitude
+				/* ----- Amplitude ----- */
 				OSCdef.new(
 					\lfoAmpplitude,
 					{
 						arg msg;
 						var val;
 						val = msg[1];
-						c.set(\lfoAmp, val); //todo: setSynth name to the definitive name
+						c.set(\lfoAmp, val);
 						~oscNetAddrTouchOSC.sendMsg("/lfo/amplitude", val.round(0.01));
 						msg.postln;
 					},
 					'/lfo/amplitude'
 				);
 
-				// Sinusoidal Table Gain
+				/* ----- Wavetables ----- */
+				/* ----- Sinusoidal Table Gain ----- */
 				OSCdef.new(
 					\synth1Gain,
 					{
 						arg msg;
 						var val;
 						val = msg[1];
-						c.set(\sinTableGain, val); //todo: setSynth name to the definitive name
+						c.set(\sinTableGain, val);
 						~oscNetAddrTouchOSC.sendMsg("/synthPad/synth1/gain", val.round(0.01));
 						msg.postln;
 					},
 					'/synthPad/synth1/gain'
 				);
-
-				// Cheb Table Gain
+				/* ----- Chebyshev Table Gain ----- */
 				OSCdef.new(
 					\synth2Gain,
 					{
 						arg msg;
 						var val;
 						val = msg[1];
-						c.set(\chebTableGain, val); //todo: setSynth name to the definitive name
+						c.set(\chebTableGain, val);
 						~oscNetAddrTouchOSC.sendMsg("/synthPad/synth2/gain", val.round(0.01));
 						msg.postln;
 					},
