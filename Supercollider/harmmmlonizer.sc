@@ -459,7 +459,6 @@ s.waitForBoot({
 			o = OSCFunc({ arg msg, time;
 				// Message contains the OSC array polled from the trigger
 				var data = msg[3..];
-				data.postln;
 				~oscNetAddrProcessing.sendMsg("/harmmmlonizer", data[0], data[1], data[2..]);
 			}, '/oscAnswer', s.addr);
 
