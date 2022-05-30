@@ -280,10 +280,10 @@ s.waitForBoot({
 			pitchRatio = Select.kr(octaveUpDown, [pitchRatio, -1*pitchRatio]);
 
 			// DEBUG
-			//rootIndex.poll; -> 2
+			//rootIndex.poll;
 			//(scale.size - 1).poll; -> 6
 			//(0..(scale.size - 1)).poll; -> [0, 1, 2, 3, 4, 5, 6]
-			//((0..(scale.size - 1)) + 2).poll; -> [2, 3, 4, 5, 6, 7, 8]
+			//((0..(scale.size - 1)) + rootIndex).poll;
 			//((0..(scale.size - 1)) + rootIndex).wrap(0, scale.size).poll;
 			//rootIndex.poll((HPZ1.kr(rootIndex).abs > 0) + Impulse.kr(0));
 			//rotatedScale.poll;
@@ -459,6 +459,7 @@ s.waitForBoot({
 			o = OSCFunc({ arg msg, time;
 				// Message contains the OSC array polled from the trigger
 				var data = msg[3..];
+				data.postln;
 				~oscNetAddrProcessing.sendMsg("/harmmmlonizer", data[0], data[1], data[2..]);
 			}, '/oscAnswer', s.addr);
 
