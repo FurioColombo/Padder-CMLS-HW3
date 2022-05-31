@@ -7,7 +7,7 @@ Thanks to the small dimensions of the Arduino board and the sensors, it’s also
 - A pad-like synthesizer implemented using **wavetable synthesis**, provided with high-pass and low-pass filters and a Low Frequency Oscillator modulating output's amplitude.
 - The updated version of our **HarMMMLonizer** takes the one-voice audio signal from the synth and creates different chords depending on the parameters of the harmonizer.
 - The **Touch OSC** application (Mk1 version) that represents our Graphical User Interface of the synthesizer and of the smart harmonizer. Thanks to Touch OSC, it is possible to change the synthesizer and the harmonizer parameters in real time with a tablet, such as an iPad or other devices.
-- The **visualization** part, whose goal is giving to the user a feedback of the chords played with the foot. The root note is displayed on the screen. Moreover, he visualization was built in order to have different colors depending on the musical type of the played chord.
+- The **visualization** part, whose goal is giving to the user a feedback of the chords played with the foot. The root note is displayed. Moreover, the visualization was built in order to have different colors depending on the musical type of the played chord.
 
 <p align="center">
   <img width="500" height=auto src="./Assets/Images/ProcessingVisualization.PNG">
