@@ -13,5 +13,5 @@ Thanks to the small dimensions of the Arduino board and the sensors, it’s also
 The layout that was developed consists of three different pages. The first one is devoted to general controls over the final output and the Pitch Shifter. The second page is related to controls over pitched voices, whereas the third one provides controls over Synth Pad parameters. The musician can switch from one page to the other by simply selecting the correct page on the tab-bar section located on top of the screen. Messages are exchanged with the software through OSC communication protocols. The Layout was developed for iPad or other tablet devices.
 
 <p align="center">
-  <img width="800" height=auto src="./Assets/Images/GeneralControls-TouchOSC-GUI.png">
+  <img width="500" height=auto src="./Assets/Images/GeneralControls-TouchOSC-GUI.png">
 </p>
