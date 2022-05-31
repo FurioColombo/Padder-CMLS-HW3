@@ -9,6 +9,10 @@ Thanks to the small dimensions of the Arduino board and the sensors, it’s also
 - The **Touch OSC** application (Mk1 version) that represents our Graphical User Interface of the synthesizer and of the smart harmonizer. Thanks to Touch OSC, it is possible to change the synthesizer and the harmonizer parameters in real time with a tablet, such as an iPad or other devices.
 - The **visualization** part, whose goal is giving to the user a feedback of the chords played with the foot. The visualization was built in order to have different colors depending on the musical type of the played chord.
 
+<p align="center">
+  <img width="500" height=auto src="./Assets/Images/ProcessingVisualization.png">
+</p>
+
 ## Guide to Usage
 - First, connect the **Arduino UNO board**, then open up **arduino_URM09.ino** file with Arduino platform. Then press load button.
 - Close **arduino_URM09.ino** file so that the serial port is available.
