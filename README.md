@@ -53,4 +53,4 @@ As the synth pad sound is a mixture of two different sounds, the first section p
 
 The second section makes possible to control parameters related to **effects** and **ADSR envelope** to be applied on the synth sound. As a matter of fact, it consists of three subsections. The first one provides controls over **Frequency** and **Resonance** of the **High Pass** and **Low Pass filters**. Then, two knobs allows the musician to set **Amplitude** and **Frequency** of the **LFO**. Moreover, four sliders are available to control **Attack**, **Decay**, **Sustain** and **Release** of the **ADSR envelope**.
 
-**You're now ready to play with Padder! Let's create some music!**
+***You're now ready to play with Padder! Let's create some music!***
