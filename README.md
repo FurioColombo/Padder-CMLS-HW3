@@ -10,7 +10,10 @@ Thanks to the small dimensions of the Arduino board and the sensors, it’s also
 - The **visualization** part, whose goal is giving to the user a feedback of the chords played with the foot. The visualization was built in order to have different colors depending on the musical type of the played chord.
 
 # GUI and Available Controls
-The layout that was developed consists of three different pages. The first consists of two main sections: Master and Pitch Shifter. The Master section allows the musician to set master gain and dry/wet balance between input signal and pitched voices. Furthermore, some controls over reverberation effect to be accomplished on the final output are provided. Indeed, three knobs are available for Room Size, Dry Wet and High Damp parameters.
+The layout that was developed consists of three different pages. 
+
+## Page 1: General Controls
+The first consists of two main sections: Master and Pitch Shifter. The Master section allows the musician to set master gain and dry/wet balance between input signal and pitched voices. Furthermore, some controls over reverberation effect to be accomplished on the final output are provided. Indeed, three knobs are available for Room Size, Dry Wet and High Damp parameters.
 The Pitch Shifter section makes possible for the artist to set the key and the musical mode for pitch shifting. This controls elements consist of two buttons. By clicking on a button, the user can switch from the current value that is displayed within the corresponding label to next one. Moreover, three knobs are available, each one devoted to a specific parameter related to the pitch shifting. This section enables the musician to set Formant Ratio, Grains Period and Time Dispersion.
 
 <p align="center">
