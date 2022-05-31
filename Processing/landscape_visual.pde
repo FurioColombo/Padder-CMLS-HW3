@@ -106,7 +106,7 @@ void draw() {
     if(round(wavePaletteStartInd*10)%10 == 0) {
       waves[i].scaleAmplitude(random(0.97, 1.03));
   }
-    tempColors[i] = colorIntepolator.interpolate(tempColors[i], chordBasedColorPicker.palette[(abs(floor(-wavePaletteStartInd)+i))%chordBasedColorPicker.palette.length], 0.35);
+    tempColors[i] = colorIntepolator.interpolate(tempColors[i], chordBasedColorPicker.palette[(abs(floor(-wavePaletteStartInd)+i))%chordBasedColorPicker.palette.length], 0.25);
     //tempColors[i] = colorIntepolator.interpolate(tempColors[(abs(floor(-wavePaletteStartInd)+i))%palette.length], palette[(abs(floor(-wavePaletteStartInd)+i))%palette.length], 0.02);
     // old code: waves[i].setColor(palette[(abs(floor(-wavePaletteStartInd)+i))%palette.length]);
     waves[i].setColor(tempColors[i]);
