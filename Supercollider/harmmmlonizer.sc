@@ -28,10 +28,13 @@ s.waitForBoot({
 		~modeSelectionBuses = Array.fill(~voiceNumber, {arg i; Bus.control(s, 1)});
 		~keyControlBus = Bus.control(s, 1);
 		~scaleControlBus = Bus.control(s, 1);
+		~rootIndexControlBus = Bus.control(s, 1);
 		~voiceIntervalBusses = Array.fill(~voiceNumber, {arg i; Bus.control(s, 1)});
 		~octaveUpDownBuses = Array.fill(~voiceNumber, {arg i; Bus.control(s, 1)});
 		~octaveNumberBuses = Array.fill(~voiceNumber, {arg i; Bus.control(s, 1)});
 		/* ----- Keys and intervals ----- */
+		~currentKey = 0;
+		~currentScale = 0;
 		~chromaticFreqs = [261.63, 277.18, 293.66, 311.13, 329.63, 349.23, 369.99, 392.00, 415.30, 440.00, 466.16, 493.88];
 		~keys = ['c', 'cs', 'd', 'ds', 'e', 'f', 'fs', 'g', 'gs', 'a', 'as', 'b'];
 		~scales = [
@@ -203,7 +206,7 @@ s.waitForBoot({
 				overlap: 1024,
 				smallCutoff: 0
 			);*/
-			freq.poll;
+
 			Out.kr(~pitchDetectionControlBus, freq);
 		}).add
 	);
@@ -220,30 +223,9 @@ s.waitForBoot({
 			key = In.kr(~keyControlBus, 1);
 			scale = Select.kr(In.kr(~scaleControlBus, 1), ~scales);
 
-			// Build array with frequency for selected key
-			currentPos = key;
-			chromaticFreqsBuffer = LocalBuf.newFrom(~chromaticFreqs);
-			freqsLocBuffer = LocalBuf.newFrom(
-				Array.fill(scale.size, {arg i;
-					var note;
-					currentPos;
-					// pull the freq for the current note
-					note = WrapIndex.kr(chromaticFreqsBuffer, currentPos);
-					// move to the next note for next time
-					currentPos = currentPos + Select.kr(i, scale);
-					note;
-				})
-			);
-
 			// Compute ratio for current voice
-			// Read the detected frequency
-			detectedFreq = In.kr(~pitchDetectionControlBus, 1);
-			// Normalize it to a reference midi note number (0:C..11:B)
-			referenceFreqIndex = ((detectedFreq.cpsmidi.round) % 12);
-			// Get the reference frequency
-			referenceFreq = Select.kr(referenceFreqIndex, ~chromaticFreqs);
 			// Get the index of the root note
-			rootIndex = DetectIndex.kr(freqsLocBuffer, referenceFreq);
+			rootIndex = In.kr(~rootIndexControlBus, 1);
 			// Rotate the scale array so the root note is in the first position
 			rotatedScale = Select.kr(((0..(scale.size - 1)) + rootIndex).wrap(0, scale.size), scale);
 			// Get the interval selected for the voice
@@ -262,11 +244,11 @@ s.waitForBoot({
 			pitchRatio = Select.kr(octaveUpDown, [pitchRatio, -1*pitchRatio]);
 
 			// DEBUG
-			rootIndex.poll;
+			// rootIndex.poll;
 			//(scale.size - 1).poll; -> 6
 			//(0..(scale.size - 1)).poll; -> [0, 1, 2, 3, 4, 5, 6]
 			//((0..(scale.size - 1)) + rootIndex).poll;
-			((0..(scale.size - 1)) + rootIndex).wrap(0, scale.size).poll;
+			// ((0..(scale.size - 1)) + rootIndex).wrap(0, scale.size).poll;
 			//rootIndex.poll((HPZ1.kr(rootIndex).abs > 0) + Impulse.kr(0));
 			//rotatedScale.poll;
 			//voiceInterval.poll((HPZ1.kr(voiceInterval).abs > 0) + Impulse.kr(0));
@@ -450,8 +432,24 @@ s.waitForBoot({
 			/* ----- Start setting bus values with incoming serial messages ----- */
 			Routine.new({
 				{
+					var currentPos, currentScaleFreqs;
 					~serialMidiNoteControlBus.set(~serialMidiNote);
 					~serialMidiMessageControlBus.set(~serialMidiMessage);
+					currentPos = ~currentKey;
+					currentScaleFreqs = Array.fill(~scales[~currentScale].size, {arg i;
+						var note;
+						// pull the freq for the current note
+						note = ~chromaticFreqs.wrapAt(currentPos);
+						// move to the next note for next time
+						currentPos = currentPos + ~scales[~currentScale].at(i);
+						note;
+					});
+					~rootIndexControlBus.set(currentScaleFreqs.detectIndex({
+							arg item, i;
+							item == ~chromaticFreqs.at(~serialMidiNote % 12);
+						})
+					);
+
 					0.03.wait;
 				}.loop;
 			}).play;
@@ -578,12 +576,30 @@ s.waitForBoot({
 			currentXPos = (1625 - (2*titleWidth))/2;
 
 			/* ----- Key Selection Menu ----- */
-			EZPopUpMenu.new (
+			EZPopUpMenu.new(
 				parentView: window,
 				bounds: Rect(currentXPos, currentYPos, dropMenuWidth, dropMenuHeight),
 				label: "Key: ",
 				items: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'],
-				globalAction: {arg thisMenu; ~keyControlBus.set(thisMenu.value)},
+				globalAction: {arg thisMenu;
+					var currentPos, currentScaleFreqs;
+					currentPos = thisMenu.value;
+					~keyControlBus.set(thisMenu.value);
+					~currentKey = thisMenu.value;
+					currentScaleFreqs = Array.fill(~scales[~currentScale].size, {arg i;
+						var note;
+						// pull the freq for the current note
+						note = ~chromaticFreqs.wrapAt(currentPos);
+						// move to the next note for next time
+						currentPos = currentPos + ~scales[~currentScale].at(i);
+						note;
+					});
+					~rootIndexControlBus.set(currentScaleFreqs.detectIndex({
+							arg item, i;
+							item == ~chromaticFreqs.at(~serialMidiNote % 12);
+						})
+					);
+				},
 				initVal: 0,
 				initAction: true,
 				labelWidth: 120,
@@ -617,7 +633,25 @@ s.waitForBoot({
 					'Oriental',
 					'Enigmatic'
 				],
-				globalAction: {arg thisMenu; ~scaleControlBus.set(thisMenu.value)},
+				globalAction: {arg thisMenu;
+					var currentPos, currentScaleFreqs;
+					currentPos = ~currentKey;
+					~scaleControlBus.set(thisMenu.value);
+					~currentScale = thisMenu.value;
+					currentScaleFreqs = Array.fill(~scales[thisMenu.value].size, {arg i;
+						var note;
+						// pull the freq for the current note
+						note = ~chromaticFreqs.wrapAt(currentPos);
+						// move to the next note for next time
+						currentPos = currentPos + ~scales[thisMenu.value].at(i);
+						note;
+					});
+					~rootIndexControlBus.set(currentScaleFreqs.detectIndex({
+							arg item, i;
+							item == ~chromaticFreqs.at(~serialMidiNote % 12);
+						})
+					);
+				},
 				initVal: 0,
 				initAction: true,
 				labelWidth: 120,
