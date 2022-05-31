@@ -20,7 +20,7 @@ Thanks to the small dimensions of the Arduino board and the sensors, it’s also
 The layout that was developed consists of three different pages. 
 
 ### General Controls
-The first consists of two main sections: Master and Pitch Shifter. 
+The first page is composed of two main sections: Master and Pitch Shifter. 
 
 <p align="center">
   <img width="500" height=auto src="./Assets/Images/GeneralControls-TouchOSC-GUI.png">
