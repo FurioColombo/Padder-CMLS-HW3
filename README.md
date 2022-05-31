@@ -9,10 +9,10 @@ Thanks to the small dimensions of the Arduino board and the sensors, it’s also
 - The **Touch OSC** application (Mk1 version) that represents our Graphical User Interface of the synthesizer and of the smart harmonizer. Thanks to Touch OSC, it is possible to change the synthesizer and the harmonizer parameters in real time with a tablet, such as an iPad or other devices.
 - The **visualization** part, whose goal is giving to the user a feedback of the chords played with the foot. The visualization was built in order to have different colors depending on the musical type of the played chord.
 
-# GUI and Available Controls
+## GUI and Available Controls
 The layout that was developed consists of three different pages. 
 
-## General Controls
+### General Controls
 The first consists of two main sections: Master and Pitch Shifter. 
 
 <p align="center">
@@ -22,7 +22,7 @@ The first consists of two main sections: Master and Pitch Shifter.
 The Master section allows the musician to set master gain and dry/wet balance between input signal and pitched voices. Furthermore, some controls over reverberation effect to be accomplished on the final output are provided. Indeed, three knobs are available for Room Size, Dry Wet and High Damp parameters.
 The Pitch Shifter section makes possible for the artist to set the key and the musical mode for pitch shifting. This controls elements consist of two buttons. By clicking on a button, the user can switch from the current value that is displayed within the corresponding label to next one. Moreover, three knobs are available, each one devoted to a specific parameter related to the pitch shifting. This section enables the musician to set Formant Ratio, Grains Period and Time Dispersion.
 
-## Pitched Voices Controls
+### Pitched Voices Controls
 The Voices pages is divided into four sections, one for each voice, as four voices harmony is supported. 
 
 <p align="center">
@@ -32,7 +32,7 @@ The Voices pages is divided into four sections, one for each voice, as four voic
 For each section, Gain and Pan knobs make possible to set voice gain and panning values. Voice Interval slider allows to set the interval for pitch shifting, whereas the two buttons on its left side enable to set the number of octaves and direction for pitch shifting, which can be accomplished within the same octave as the input note or one/two octaves upward/downward. 
 Moreover, some controls over feedback delay line are available. The musician can choose the desired Feedback Mode by clicking on the FeedbackMode button and set DelayTime and Feedback amount values for feedback effect to be applied on the single pitched voice.
 
-## Synth Pad Controls
+### Synth Pad Controls
 The third page is devoted to Synth Pad controls and it consists of two sections.
 As the synth pad sound is a mixture of two different sounds, the first section provides the musician with the possibility of controlling the balance between them. Indeed, two gain knobs, one for each synth, are available.
 
