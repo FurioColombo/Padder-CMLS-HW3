@@ -12,7 +12,7 @@ Thanks to the small dimensions of the Arduino board and the sensors, it’s also
 # GUI and Available Controls
 The layout that was developed consists of three different pages. 
 
-## Page 1: General Controls
+## General Controls
 The first consists of two main sections: Master and Pitch Shifter. 
 
 <p align="center">
