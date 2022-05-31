@@ -10,7 +10,7 @@ Thanks to the small dimensions of the Arduino board and the sensors, it’s also
 - The **visualization** part, whose goal is giving to the user a feedback of the chords played with the foot. The visualization was built in order to have different colors depending on the musical type of the played chord.
 
 <p align="center">
-  <img width="500" height=auto src="./Assets/Images/ProcessingVisualization.png">
+  <img width="500" height=auto src="./Assets/Images/ProcessingVisualization.PNG">
 </p>
 
 ## Guide to Usage
