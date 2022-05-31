@@ -13,9 +13,11 @@ Thanks to the small dimensions of the Arduino board and the sensors, it’s also
 The layout that was developed consists of three different pages. 
 
 ## Page 1: General Controls
-The first consists of two main sections: Master and Pitch Shifter. The Master section allows the musician to set master gain and dry/wet balance between input signal and pitched voices. Furthermore, some controls over reverberation effect to be accomplished on the final output are provided. Indeed, three knobs are available for Room Size, Dry Wet and High Damp parameters.
-The Pitch Shifter section makes possible for the artist to set the key and the musical mode for pitch shifting. This controls elements consist of two buttons. By clicking on a button, the user can switch from the current value that is displayed within the corresponding label to next one. Moreover, three knobs are available, each one devoted to a specific parameter related to the pitch shifting. This section enables the musician to set Formant Ratio, Grains Period and Time Dispersion.
+The first consists of two main sections: Master and Pitch Shifter. 
 
 <p align="center">
   <img width="500" height=auto src="./Assets/Images/GeneralControls-TouchOSC-GUI.png">
 </p>
+
+The Master section allows the musician to set master gain and dry/wet balance between input signal and pitched voices. Furthermore, some controls over reverberation effect to be accomplished on the final output are provided. Indeed, three knobs are available for Room Size, Dry Wet and High Damp parameters.
+The Pitch Shifter section makes possible for the artist to set the key and the musical mode for pitch shifting. This controls elements consist of two buttons. By clicking on a button, the user can switch from the current value that is displayed within the corresponding label to next one. Moreover, three knobs are available, each one devoted to a specific parameter related to the pitch shifting. This section enables the musician to set Formant Ratio, Grains Period and Time Dispersion.
