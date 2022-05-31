@@ -32,10 +32,10 @@ PianoKeyboardDisplayer pianoKeyboardDisplayer = new PianoKeyboardDisplayer();
 // TODO: WHY height width don't work well?
 final static int canvasWidth = 1920;
 final static int canvasHeight = 1080;
-final static float reactFactor = min(1920.0/3000.0, 1080.0/2000.0);
+final static float reactFactor = min(canvasWidth/3000.0, canvasHeight/2000.0);
 final static int yHorizonHeight = floor(canvasHeight/3);
 final static int waveNum = 11;
-final static int waveDistanceIncrement = 40;
+final static int waveDistanceIncrement = round(40*reactFactor);
 Wave[] waves = new Wave[waveNum];
 SunHandler sunHandler;
 
@@ -59,8 +59,9 @@ String[] typesArray = {"maj", "sus", "mindom7", "min", "majdom7", "majmaj7"};
 color[] tempColors = new color[waveNum];
 
 void setup() {
-   // Fullscreen Setup
-  size(1920, 1080);
+  
+  //fullScreen(); // Fullscreen Setup
+  size(1920, 1080); // Full HD setup 
   background(skyColor);
   int divideLineY = ceil(height*3/4);
   
@@ -606,10 +607,10 @@ public class Wave{
   
   Wave(){}
   Wave(int yPos, float period, float theta, float amplitude, color waveColor, float thetaIncrement){
-    this.period = period;
+    this.period = period*reactFactor;
     this.yPos = yPos;
     this.theta = theta;
-    this.amplitude = amplitude;
+    this.amplitude = amplitude*reactFactor;
     this.dx = (TWO_PI / period) * xspacing;   
     this.waveColor = waveColor;
     this.thetaIncrement = thetaIncrement;
@@ -829,6 +830,7 @@ class ChordBasedColorPicker {
     
     // todo: arriva Chord type: A#mindom7, non correttamente parsato!!!!!!!!1
     if(chordType == "alt"){
+      println ("AAAAAAAAAAAAAAAAALLLTLTTTTT-T--T-T-----");
      this.palette = new color[]{
         color(8, 24, 58),
         color(21, 40, 82),
@@ -880,7 +882,7 @@ public class ChordRecogniser {
     String chordName = new String();
     
     // Third recognition
-    if(Arrays.asList(semitonesIntervals).contains(3)){
+    if(Arrays.asList(semitonesIntervals).contains(INTERVALMIN3)){
       chordName += "min";
     } else if(Arrays.asList(semitonesIntervals).contains(INTERVALMAJ3)){
       chordName += "maj";
@@ -893,7 +895,11 @@ public class ChordRecogniser {
       chordName += "dom7";
     } else if(Arrays.asList(semitonesIntervals).contains(INTERVALMAJ7)){
       chordName += "maj7";
-    }  
+    }
+    
+    if(Arrays.asList(semitonesIntervals).contains(INTERVALDIM5) || Arrays.asList(semitonesIntervals).contains(INTERVALMAJ5)){
+      chordName = "alt";
+    }
     return chordName;
   }
   
