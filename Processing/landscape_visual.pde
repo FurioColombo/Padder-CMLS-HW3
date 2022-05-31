@@ -31,8 +31,9 @@ PianoKeyboardDisplayer pianoKeyboardDisplayer = new PianoKeyboardDisplayer();
 
 // WAVES - SUN
 // TODO: WHY height width don't work well?
-final static int canvasWidth = 3000;
-final static int canvasHeight = 2000;
+final static int canvasWidth = 1920;
+final static int canvasHeight = 1080;
+final static float reactFactor = min(1920.0/3000.0, 1080.0/2000.0);
 final static int yHorizonHeight = floor(canvasHeight/3);
 final static int waveNum = 11;
 final static int waveDistanceIncrement = 40;
@@ -57,15 +58,16 @@ String[] typesArray = {"maj", "sus", "mindom7", "min", "majdom7", "majmaj7"};
 color[] tempColors = new color[waveNum];
 
 void setup() {
+   // Fullscreen Setup
+  size(1920, 1080);
+  background(skyColor);
+  int divideLineY = ceil(height*3/4);
+  
   // OSCP5 setup
   oscP5 = new OscP5(this, portNumber);
   remoteLocation = new NetAddress(address, portNumber);
 
-  // Fullscreen Setup
-  fullScreen();
-  background(skyColor);
-  int divideLineY = ceil(height*3/4);
-  
+
   // setup Sun
   sunHandler = new SunHandler(sunCenterColor, sunOuterColor, canvasHeight/4);
   
@@ -178,8 +180,8 @@ public class RootNameDisplayer {
   private color nameColor = color(252, 186, 3);
   private color circleColor = color(15, 0, 46);
   private color circleFrameColor = color(252, 186, 3);
-  private int frameRadius = 276;
-  private int textSize = 192;
+  private int frameRadius = round(276*reactFactor);
+  private int textSize = round(192*reactFactor);
   private int x;
   private int y;
 
@@ -222,11 +224,11 @@ public class RootNameDisplayer {
 public class PianoKeyboardDisplayer {
   private int x = width/2;
   private color y = height/2;
-  private int whiteKeyBottomWidth  = 90;
-  private int whiteKeyHeight  = 300;
-  private int blackKeyWidth = 64;
-  private int blackKeyHeight = 200;
-  private int whiteKeyTopWidth = this.whiteKeyBottomWidth - this.blackKeyWidth*2/3;
+  private int whiteKeyBottomWidth  = round(90*reactFactor);
+  private int whiteKeyHeight  = round(300*reactFactor);
+  private int blackKeyWidth = round(64*reactFactor);
+  private int blackKeyHeight = round(200*reactFactor);
+  private int whiteKeyTopWidth = round((this.whiteKeyBottomWidth - reactFactor*this.blackKeyWidth*2/3));
   private color keysColor = color(252, 186, 3);
   private color pressedKeysColor = color(99, 99, 99);
   private boolean[] activeNotesFlagArray = new boolean[keysNumber];
