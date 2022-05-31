@@ -24,7 +24,6 @@ OscHandler oscHandler = new OscHandler();
 // KEYBOARD
 final static int keysNumber = 12;
 final static int numOctaves = 3;
-String currentNote = new String();
 boolean[] pressedKeysFlagArray = new boolean[36];
 RootNameDisplayer rootNameDisplayer = new RootNameDisplayer();
 PianoKeyboardDisplayer pianoKeyboardDisplayer = new PianoKeyboardDisplayer();
@@ -52,6 +51,8 @@ ChordBasedColorPicker chordBasedColorPicker = new ChordBasedColorPicker();
 ColorIntepolator colorIntepolator = new ColorIntepolator();
 ChordRecogniser chordRecogniser = new ChordRecogniser();
 Random random = new Random();
+int CURRENT_NOTE_ID = 0;
+int[] CURRENT_HARMONIZATION = {0, 0, 0, 0};
 
 // TODO: DELETE - TEMP FOR TESTING
 String[] typesArray = {"maj", "sus", "mindom7", "min", "majdom7", "majmaj7"};
@@ -66,7 +67,6 @@ void setup() {
   // OSCP5 setup
   oscP5 = new OscP5(this, portNumber);
   remoteLocation = new NetAddress(address, portNumber);
-
 
   // setup Sun
   sunHandler = new SunHandler(sunCenterColor, sunOuterColor, canvasHeight/4);
@@ -114,6 +114,8 @@ void draw() {
     waves[i].calcWave();
     waves[i].renderWave();
   }
+  
+  // chord displayer and keyboard
   rootNameDisplayer.updateRoot();
   pianoKeyboardDisplayer.drawKeyboard(numOctaves, pressedKeysFlagArray);
 }
@@ -125,8 +127,7 @@ void draw() {
 void oscEvent(OscMessage inOscMessage) {
   print("OscEvent: ");
   print(inOscMessage.typetag() + " - ");
-  Arrays.fill(pressedKeysFlagArray, false);
-  
+
   if(oscHandler.isOscMessageNoteOn(inOscMessage)){
      print("NoteOn - root: ");
      // get root midi number
@@ -137,8 +138,18 @@ void oscEvent(OscMessage inOscMessage) {
      for(int i=0; i<armonizedVoicesMidiNotes.length; i++){
        print(armonizedVoicesMidiNotes[i] + " ");
      }
-     println();
-     noteOnOSC(root, armonizedVoicesMidiNotes);
+       println();
+     if(CURRENT_NOTE_ID != root || !Arrays.equals(CURRENT_HARMONIZATION, armonizedVoicesMidiNotes)){ 
+       println("Note and harmonization have changed");
+       println("CURRENT_HARMONIZATION: - length: " + CURRENT_HARMONIZATION.length + " voices: " + CURRENT_HARMONIZATION[0] + " - " + CURRENT_HARMONIZATION[1] + " - " + CURRENT_HARMONIZATION[2] + " - " + CURRENT_HARMONIZATION[3]);
+       println("armonizedVoicesMidiNotes: - length: " + armonizedVoicesMidiNotes.length + " voices: " + armonizedVoicesMidiNotes[0] + " - " + armonizedVoicesMidiNotes[1] + " - " + armonizedVoicesMidiNotes[2] + " - " + armonizedVoicesMidiNotes[3]);
+
+       CURRENT_NOTE_ID = root;
+       CURRENT_HARMONIZATION = armonizedVoicesMidiNotes;
+       noteOnOSC(root, armonizedVoicesMidiNotes);
+     } else {
+       println("Note and harmonization not changed");
+     }
 
   } else {
     noteOffOSC();
@@ -154,6 +165,7 @@ void noteOnOSC(int root, int[] armonizedVoicesMidiNotes) {
   // Note displayer response
   rootNameDisplayer.setRootName(chordRecogniser.midiFreq2Note(root));  
   // Keyboard response 
+  Arrays.fill(pressedKeysFlagArray, false);
   pressedKeysFlagArray[root%(12*numOctaves)] = true;
   for(int i=0; i<armonizedVoicesMidiNotes.length; i++){
       pressedKeysFlagArray[armonizedVoicesMidiNotes[i]%(12*numOctaves)] = true;
@@ -173,6 +185,8 @@ void noteOnOSC(int root, int[] armonizedVoicesMidiNotes) {
 // OSC NoteOff 
 void noteOffOSC() {
   sunHandler.setPulsing(false);
+  Arrays.fill(pressedKeysFlagArray, false);
+
 }
 
 public class RootNameDisplayer {
