@@ -80,7 +80,7 @@ s.waitForBoot({
 		/* ----- Buffers ----- */
 		// ~inputBuffer = Buffer.read(s, thisProcess.nowExecutingPath.dirname +/+ "loops/Gm Let Me Love You.wav");
 		/* ----- Serial ----- */
-		~serialMidiNote = 52;
+		~serialMidiNote = 50;
 		~serialMidiMessage = 1;
 		/* ----- OSC ----- */
 		~oscNetAddrProcessing = NetAddr.new("127.0.0.1", 7777);
@@ -136,8 +136,8 @@ s.waitForBoot({
 
 	/* ----- Wavatable Synth ----- */
 	(
-		c = SynthDef.new(\synth, { arg lpfCutoff = 2000, hpfCutoff = 2000, lfoFreq = 10, lfoAmp = 0.075, sinTableGain = 1, chebTableGain = 0.12, lpfResonance = 1, hpfResonance = 1, adsrA = 0.1, adsrD = 0.05, adsrS = 0.5, adsrR = 1.0;
-			var midiNote, gate, lfo, env, gen, adsrPeak = 1.0, sineSignal, chebSignal, soundSin, soundCheb, sinBuffer, chebBuffer, synthSignal;
+		c = SynthDef.new(\synth, { arg sinTableGain = 1, chebTableGain = 0.12;
+			var midiNote, gate, sineSignal, chebSignal, soundSin, soundCheb, sinBuffer, chebBuffer, synthSignal;
 
 			midiNote = In.kr(~serialMidiNoteControlBus, 1);
 			gate = In.kr(~serialMidiMessageControlBus, 1); // (0: NoteOff - 1: NoteOn)
@@ -162,6 +162,7 @@ s.waitForBoot({
 				amplitudes: [1, 1/2, 1/6, 1/2, 1/8, 1/4],
 				normalize: true
 			);
+
 			chebBuffer = LocalBuf.new(numFrames: 2048, numChannels: 1);
 			chebBuffer.set(chebSignal.asWavetable);
 			soundCheb = Osc.ar(
@@ -170,27 +171,7 @@ s.waitForBoot({
 				mul: chebTableGain
 			);
 
-			/* ----- Envelope Generator ----- */
-			env = Env.adsr(
-				attackTime: adsrA,
-				decayTime: adsrD,
-				sustainLevel: adsrS,
-				releaseTime: adsrR,
-				peakLevel: adsrPeak,
-				curve: -4.0,
-				bias: 0.0
-			);
-			gen = EnvGen.kr(env, gate);
-
-			/* ----- LFO ----- */
-			lfo = SinOsc.kr(freq: lfoFreq, phase: 0, mul: lfoAmp, add: 1);
-
-			synthSignal = Mix.ar([soundSin, soundCheb]) * gen;
-
-			/* ----- Filters ----- */
-			synthSignal = RLPF.ar(synthSignal, lpfCutoff, lpfResonance);
-			synthSignal = RHPF.ar(synthSignal, hpfCutoff, hpfResonance);
-
+			synthSignal = Mix.ar([soundSin, soundCheb]) * gate;
 			Out.ar(~inputAudioBus, synthSignal);
 		}).add;
 	);
@@ -281,11 +262,11 @@ s.waitForBoot({
 			pitchRatio = Select.kr(octaveUpDown, [pitchRatio, -1*pitchRatio]);
 
 			// DEBUG
-			//rootIndex.poll;
+			rootIndex.poll;
 			//(scale.size - 1).poll; -> 6
 			//(0..(scale.size - 1)).poll; -> [0, 1, 2, 3, 4, 5, 6]
 			//((0..(scale.size - 1)) + rootIndex).poll;
-			//((0..(scale.size - 1)) + rootIndex).wrap(0, scale.size).poll;
+			((0..(scale.size - 1)) + rootIndex).wrap(0, scale.size).poll;
 			//rootIndex.poll((HPZ1.kr(rootIndex).abs > 0) + Impulse.kr(0));
 			//rotatedScale.poll;
 			//voiceInterval.poll((HPZ1.kr(voiceInterval).abs > 0) + Impulse.kr(0));
@@ -340,8 +321,7 @@ s.waitForBoot({
 	to the node changes accordingly to the selected mode. */
 	(
 		g = SynthDef.new(\feedbackDelayLine, { arg channelIndex, delayTime = ~minDelayTime, feedbackAmount = 0.0;
-
-			var input, feedbackNode, delayedSignal, feedbackSignal, pitchShiftedSignal, selectedMode, channelFeedbackBus;
+			var input, feedbackNode, delayedSignal, feedbackSignal, pitchShiftedSignal, selectedMode, channelFeedbackBus, env, gen;
 
 			input = In.ar(~inputAudioBus, 1);
 			feedbackNode = FbNode(numChannels: 1, maxdelaytime: ~maxDelayTime, interpolation: 2);
@@ -376,8 +356,8 @@ s.waitForBoot({
 	/* ----- Mixer -----
 	Mixes the mono input and the pitch shifted voices to a stereo ouput. */
 	(
-		h = SynthDef.new(\mixer, { arg master = 1, wet = 0.5, reverbMix = 0.5, roomDimension = 0.5, reverbHighDamp = 0.5;
-			var monoInput, stereoInput, stereoOutput, voiceStereoSignals, selectedMode;
+		h = SynthDef.new(\mixer, { arg master = 1, wet = 0.5, reverbMix = 0.5, roomDimension = 0.5, reverbHighDamp = 0.5, lpfCutoff = 2000, hpfCutoff = 2000, lfoFreq = 10, lfoAmp = 0.075, lpfResonance = 1, hpfResonance = 1, adsrA = 0.1, adsrD = 0.05, adsrS = 0.5, adsrR = 1.0;
+			var monoInput, stereoInput, stereoOutput, voiceStereoSignals, selectedMode, env, gen, lfo;
 			monoInput = In.ar(~inputAudioBus, 1);
 			stereoInput = Pan2.ar((1 - wet) * monoInput, 0.0);
 			voiceStereoSignals = ~pitchShiftedVoiceBuses.collect({
@@ -395,15 +375,35 @@ s.waitForBoot({
 				Pan2.ar(wet * voiceOutput, stereoPan);
 			});
 			stereoOutput = Mix.new(stereoInput ++ voiceStereoSignals);
-			// REVERB
-			stereoOutput = FreeVerb2.ar( // FreeVerb2 - true stereo UGen
-				in: stereoOutput[0],  // left channel
-				in2: stereoOutput[1], // right channel
-				mix: reverbMix,       // dry[0]/wet[1]
-				room: roomDimension,  // room size [0..1]
-				damp: reverbHighDamp  // high frequncies rol-off [0..1]
+
+			/* ----- Envelope Generator ----- */
+			env = Env.adsr(
+				attackTime: adsrA,
+				decayTime: adsrD,
+				sustainLevel: adsrS,
+				releaseTime: adsrR,
+				peakLevel: 1.0,
+				curve: -4.0,
+				bias: 0.0
 			);
-			Out.ar(0, master * stereoOutput);
+			gen = EnvGen.kr(env);
+
+			/* ----- LFO ----- */
+			lfo = SinOsc.kr(freq: lfoFreq, phase: 0, mul: lfoAmp, add: 1);
+
+			/* ----- Filters ----- */
+			stereoOutput = RLPF.ar(stereoOutput, lpfCutoff, lpfResonance);
+			stereoOutput = RHPF.ar(stereoOutput, hpfCutoff, hpfResonance);
+
+			/* ----- Reverb ----- */
+			stereoOutput = FreeVerb2.ar( // FreeVerb2 - true stereo UGen
+				in: stereoOutput[0],     // left channel
+				in2: stereoOutput[1],    // right channel
+				mix: reverbMix,          // dry[0]/wet[1]
+				room: roomDimension,     // room size [0..1]
+				damp: reverbHighDamp     // high frequncies rol-off [0..1]
+			);
+			Out.ar(0,stereoOutput * master * gen * lfo);
 		}).add;
 	);
 
@@ -1200,7 +1200,7 @@ s.waitForBoot({
 					arg msg;
 					var val;
 					val = msg[1];
-					synth.set(\sinTableGain, val);
+					outputMixer.set(\sinTableGain, val);
 					~oscNetAddrTouchOSC.sendMsg("/synthPad/synth1/gain", val.round(0.01));
 					msg.postln;
 				},
@@ -1213,7 +1213,7 @@ s.waitForBoot({
 					arg msg;
 					var val;
 					val = msg[1];
-					synth.set(\chebTableGain, val);
+					outputMixer.set(\chebTableGain, val);
 					~oscNetAddrTouchOSC.sendMsg("/synthPad/synth2/gain", val.round(0.01));
 					msg.postln;
 				},
@@ -1228,7 +1228,7 @@ s.waitForBoot({
 					arg msg;
 					var val;
 					val = msg[1];
-					synth.set(\lpfCutoff, val);
+					outputMixer.set(\lpfCutoff, val);
 					~oscNetAddrTouchOSC.sendMsg("/synthPad/filters/lowPass/cutOffFrequency", val.round(1));
 					msg.postln;
 				},
@@ -1241,7 +1241,7 @@ s.waitForBoot({
 					arg msg;
 					var val;
 					val = msg[1];
-					synth.set(\lpfResonance, val);
+					outputMixer.set(\lpfResonance, val);
 					~oscNetAddrTouchOSC.sendMsg("/synthPad/filters/lowPass/resonance", val.round(0.01));
 					msg.postln;
 				},
@@ -1256,7 +1256,7 @@ s.waitForBoot({
 					arg msg;
 					var val;
 					val = msg[1];
-					synth.set(\hpfCutoff, val);
+					outputMixer.set(\hpfCutoff, val);
 					~oscNetAddrTouchOSC.sendMsg("/synthPad/filters/highPass/cutOffFrequency", val.round(1));
 					msg.postln;
 				},
@@ -1269,7 +1269,7 @@ s.waitForBoot({
 					arg msg;
 					var val;
 					val = msg[1];
-					synth.set(\hpfResonance, val);
+					outputMixer.set(\hpfResonance, val);
 					~oscNetAddrTouchOSC.sendMsg("/synthPad/filters/highPass/resonance", val.round(0.01));
 					msg.postln;
 				},
@@ -1284,7 +1284,7 @@ s.waitForBoot({
 					arg msg;
 					var val;
 					val = msg[1];
-					synth.set(\lfoFreq, val);
+					outputMixer.set(\lfoFreq, val);
 					~oscNetAddrTouchOSC.sendMsg("/synthPad/lfo/frequency", val.round(0.01));
 					msg.postln;
 				},
@@ -1297,7 +1297,7 @@ s.waitForBoot({
 					arg msg;
 					var val;
 					val = msg[1];
-					synth.set(\lfoAmp, val);
+					outputMixer.set(\lfoAmp, val);
 					~oscNetAddrTouchOSC.sendMsg("/synthPad/lfo/amplitude", val.round(0.01));
 					msg.postln;
 				},
@@ -1312,7 +1312,7 @@ s.waitForBoot({
 					arg msg;
 					var val;
 					val = msg[1];
-					synth.set(\adsrA, val);
+					outputMixer.set(\adsrA, val);
 					~oscNetAddrTouchOSC.sendMsg("/synthPad/envelope/attack", val.round(0.01));
 					msg.postln;
 				},
@@ -1325,7 +1325,7 @@ s.waitForBoot({
 					arg msg;
 					var val;
 					val = msg[1];
-					synth.set(\adsrD, val);
+					outputMixer.set(\adsrD, val);
 					~oscNetAddrTouchOSC.sendMsg("/synthPad/envelope/decay", val.round(0.01));
 					msg.postln;
 				},
@@ -1338,7 +1338,7 @@ s.waitForBoot({
 					arg msg;
 					var val;
 					val = msg[1];
-					synth.set(\adsrS, val);
+					outputMixer.set(\adsrS, val);
 					~oscNetAddrTouchOSC.sendMsg("/synthPad/envelope/sustain", val.round(0.01));
 					msg.postln;
 				},
@@ -1351,7 +1351,7 @@ s.waitForBoot({
 					arg msg;
 					var val;
 					val = msg[1];
-					synth.set(\adsrR, val);
+					outputMixer.set(\adsrR, val);
 					~oscNetAddrTouchOSC.sendMsg("/synthPad/envelope/release", val.round(0.01));
 					msg.postln;
 				},
