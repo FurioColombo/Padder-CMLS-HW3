@@ -136,8 +136,8 @@ s.waitForBoot({
 
 	/* ----- Wavatable Synth ----- */
 	(
-		c = SynthDef.new(\synth, { arg lpfCutoff = 180, hpfCutoff = 120 , lfoFreq = 10, lfoAmp = 0.075, sinTableGain = 1, chebTableGain = 0.5, lpfResonance = 1, hpfResonance = 1;
-			var midiNote, gate, lfo, env, gen, adsrA = 0.1, adsrD = 0.05, adsrS = 0.5, adsrR=1.0, adsrPeak = 1.0, sineSignal, chebSignal, soundSin, soundCheb, sinBuffer, chebBuffer, synthSignal;
+		c = SynthDef.new(\synth, { arg lpfCutoff = 2000, hpfCutoff = 2000, lfoFreq = 10, lfoAmp = 0.075, sinTableGain = 1, chebTableGain = 0.12, lpfResonance = 1, hpfResonance = 1, adsrA = 0.1, adsrD = 0.05, adsrS = 0.5, adsrR = 1.0;
+			var midiNote, gate, lfo, env, gen, adsrPeak = 1.0, sineSignal, chebSignal, soundSin, soundCheb, sinBuffer, chebBuffer, synthSignal;
 
 			midiNote = In.kr(~serialMidiNoteControlBus, 1);
 			gate = In.kr(~serialMidiMessageControlBus, 1); // (0: NoteOff - 1: NoteOn)
@@ -207,10 +207,10 @@ s.waitForBoot({
 				minFreq: 60.0,
 				maxFreq: 4000.0,
 				execFreq: 100.0,
-				maxBinsPerOctave: 16,
+				maxBinsPerOctave: 1024,
 				median: 7,
 				ampThreshold: 0.02,
-				peakThreshold: 0.5,
+				peakThreshold: 0.7,
 				downSample: 1,
 				clar: 0
 			);
@@ -222,6 +222,7 @@ s.waitForBoot({
 				overlap: 1024,
 				smallCutoff: 0
 			);*/
+			freq.poll;
 			Out.kr(~pitchDetectionControlBus, freq);
 		}).add
 	);
@@ -890,9 +891,9 @@ s.waitForBoot({
 			~oscNetAddrTouchOSC.sendMsg("/harmonizer/pitchShifter/formantRatio", 1);
 			~oscNetAddrTouchOSC.sendMsg("/harmonizer/pitchShifter/grainsPeriod", 2);
 			~oscNetAddrTouchOSC.sendMsg("/harmonizer/pitchShifter/timeDispersion", 1);
-			~oscNetAddrTouchOSC.sendMsg("/reverb/dryWet", 0);
-			~oscNetAddrTouchOSC.sendMsg("/reverb/roomSize", 0);
-			~oscNetAddrTouchOSC.sendMsg("/reverb/highDamp", 0);
+			~oscNetAddrTouchOSC.sendMsg("/reverb/dryWet", 0.5);
+			~oscNetAddrTouchOSC.sendMsg("/reverb/roomSize", 0.5);
+			~oscNetAddrTouchOSC.sendMsg("/reverb/highDamp", 0.5);
 
 
 			/* ----- Master ----- */
@@ -931,7 +932,7 @@ s.waitForBoot({
 					arg msg;
 					var val;
 					val = msg[1];
-					c.set(\reverbMix, val);
+					outputMixer.set(\reverbMix, val);
 					~oscNetAddrTouchOSC.sendMsg("/reverb/dryWet", val.round(0.01));
 					msg.postln;
 				},
@@ -944,7 +945,7 @@ s.waitForBoot({
 					arg msg;
 					var val;
 					val = msg[1];
-					c.set(\roomDimension, val);
+					outputMixer.set(\roomDimension, val);
 					~oscNetAddrTouchOSC.sendMsg("/reverb/roomSize", val.round(0.01));
 					msg.postln;
 				},
@@ -957,7 +958,7 @@ s.waitForBoot({
 					arg msg;
 					var val;
 					val = msg[1];
-					c.set(\reverbHighDamp, val);
+					outputMixer.set(\reverbHighDamp, val);
 					~oscNetAddrTouchOSC.sendMsg("/reverb/highDamp", val.round(0.01));
 					msg.postln;
 				},
@@ -1173,131 +1174,189 @@ s.waitForBoot({
 					},
 					("/harmonizer/voice" ++ (index + 1) ++ "/feedbackMode").asSymbol;
 				);
-
-				/* ----- nth - Touch OSC comunication ----- */
-
-				/* ----- Default Parameters ----- */
-				~oscNetAddrTouchOSC.sendMsg("/synthPad/synth1/gain", 1);
-				~oscNetAddrTouchOSC.sendMsg("/synthPad/synth2/gain", 1);
-				~oscNetAddrTouchOSC.sendMsg("/filters/lowPass/cutOffFrequency", 20);
-				~oscNetAddrTouchOSC.sendMsg("/filters/lowPass/resonance", 1);
-				~oscNetAddrTouchOSC.sendMsg("/filters/highPass/cutOffFrequency", 200);
-				~oscNetAddrTouchOSC.sendMsg("/filters/highPass/resonance", 1);
-				~oscNetAddrTouchOSC.sendMsg("/lfo/amplitude", 0);
-				~oscNetAddrTouchOSC.sendMsg("/lfo/frequency", 0);
-
-				/* ----- LP Filter ----- */
-				/* ----- CutOff Frequency ----- */
-				OSCdef.new(
-					\lowPassFilterCutOff,
-					{
-						arg msg;
-						var val;
-						val = msg[1];
-						c.set(\lpfCutoff, val);
-						~oscNetAddrTouchOSC.sendMsg("/filters/lowPass/cutOffFrequency", val.round(0.01));
-						msg.postln;
-					},
-					'/filters/lowPass/cutOffFrequency'
-				);
-				/* ----- Resonance ----- */
-				OSCdef.new(
-					\lowPassFilterResonance,
-					{
-						arg msg;
-						var val;
-						val = msg[1];
-						c.set(\lpfResonance, val);
-						~oscNetAddrTouchOSC.sendMsg("/filters/lowPass/resonance", val.round(0.01));
-						msg.postln;
-					},
-					'/filters/lowPass/resonance'
-				);
-
-				/* ----- HP Filter ----- */
-				/* ----- CutOff Frequency ----- */
-				OSCdef.new(
-					\highPassFilterCutOff,
-					{
-						arg msg;
-						var val;
-						val = msg[1];
-						c.set(\hpfCutoff, val);
-						~oscNetAddrTouchOSC.sendMsg("/filters/highPass/cutOffFrequency", val.round(0.01));
-						msg.postln;
-					},
-					'/filters/highPass/cutOffFrequency'
-				);
-				/* ----- Resonance ----- */
-				OSCdef.new(
-					\highPassFilterResonance,
-					{
-						arg msg;
-						var val;
-						val = msg[1];
-						c.set(\hpfResonance, val);
-						~oscNetAddrTouchOSC.sendMsg("/filters/highPass/resonance", val.round(0.01));
-						msg.postln;
-					},
-					'/filters/highPass/resonance'
-				);
-
-				/* ----- LFO ----- */
-				/* ----- Frequency ----- */
-				OSCdef.new(
-					\lfoFrequency,
-					{
-						arg msg;
-						var val;
-						val = msg[1];
-						c.set(\lfoFreq, val);
-						~oscNetAddrTouchOSC.sendMsg("/lfo/frequency", val.round(0.01));
-						msg.postln;
-					},
-					'/lfo/frequency'
-				);
-				/* ----- Amplitude ----- */
-				OSCdef.new(
-					\lfoAmpplitude,
-					{
-						arg msg;
-						var val;
-						val = msg[1];
-						c.set(\lfoAmp, val);
-						~oscNetAddrTouchOSC.sendMsg("/lfo/amplitude", val.round(0.01));
-						msg.postln;
-					},
-					'/lfo/amplitude'
-				);
-
-				/* ----- Wavetables ----- */
-				/* ----- Sinusoidal Table Gain ----- */
-				OSCdef.new(
-					\synth1Gain,
-					{
-						arg msg;
-						var val;
-						val = msg[1];
-						c.set(\sinTableGain, val);
-						~oscNetAddrTouchOSC.sendMsg("/synthPad/synth1/gain", val.round(0.01));
-						msg.postln;
-					},
-					'/synthPad/synth1/gain'
-				);
-				/* ----- Chebyshev Table Gain ----- */
-				OSCdef.new(
-					\synth2Gain,
-					{
-						arg msg;
-						var val;
-						val = msg[1];
-						c.set(\chebTableGain, val);
-						~oscNetAddrTouchOSC.sendMsg("/synthPad/synth2/gain", val.round(0.01));
-						msg.postln;
-					},
-					'/synthPad/synth2/gain'
-				);
 			});
+
+			/* ----- Touch OSC comunication - Synth Pad Controls ----- */
+
+			/* ----- Default Parameters ----- */
+			~oscNetAddrTouchOSC.sendMsg("/synthPad/synth1/gain", 1);
+			~oscNetAddrTouchOSC.sendMsg("/synthPad/synth2/gain", 0.12);
+			~oscNetAddrTouchOSC.sendMsg("/synthPad/filters/lowPass/cutOffFrequency", 2000);
+			~oscNetAddrTouchOSC.sendMsg("/synthPad/filters/lowPass/resonance", 1);
+			~oscNetAddrTouchOSC.sendMsg("/synthPad/filters/highPass/cutOffFrequency", 2000);
+			~oscNetAddrTouchOSC.sendMsg("/synthPad/filters/highPass/resonance", 1);
+			~oscNetAddrTouchOSC.sendMsg("/synthPad/lfo/amplitude", 0);
+			~oscNetAddrTouchOSC.sendMsg("/synthPad/lfo/frequency", 0);
+			~oscNetAddrTouchOSC.sendMsg("/synthPad/envelope/attack", 0.1);
+			~oscNetAddrTouchOSC.sendMsg("/synthPad/envelope/decay", 0.05);
+			~oscNetAddrTouchOSC.sendMsg("/synthPad/envelope/sustain", 0.5);
+			~oscNetAddrTouchOSC.sendMsg("/synthPad/envelope/release", 1.0);
+
+			/* ----- Wavetables ----- */
+			/* ----- Sinusoidal Table Gain ----- */
+			OSCdef.new(
+				\synth1Gain,
+				{
+					arg msg;
+					var val;
+					val = msg[1];
+					synth.set(\sinTableGain, val);
+					~oscNetAddrTouchOSC.sendMsg("/synthPad/synth1/gain", val.round(0.01));
+					msg.postln;
+				},
+				'/synthPad/synth1/gain'
+			);
+			/* ----- Chebyshev Table Gain ----- */
+			OSCdef.new(
+				\synth2Gain,
+				{
+					arg msg;
+					var val;
+					val = msg[1];
+					synth.set(\chebTableGain, val);
+					~oscNetAddrTouchOSC.sendMsg("/synthPad/synth2/gain", val.round(0.01));
+					msg.postln;
+				},
+				'/synthPad/synth2/gain'
+			);
+
+			/* ----- LP Filter ----- */
+			/* ----- CutOff Frequency ----- */
+			OSCdef.new(
+				\lowPassFilterCutOff,
+				{
+					arg msg;
+					var val;
+					val = msg[1];
+					synth.set(\lpfCutoff, val);
+					~oscNetAddrTouchOSC.sendMsg("/synthPad/filters/lowPass/cutOffFrequency", val.round(1));
+					msg.postln;
+				},
+				'/synthPad/filters/lowPass/cutOffFrequency'
+			);
+			/* ----- Resonance ----- */
+			OSCdef.new(
+				\lowPassFilterResonance,
+				{
+					arg msg;
+					var val;
+					val = msg[1];
+					synth.set(\lpfResonance, val);
+					~oscNetAddrTouchOSC.sendMsg("/synthPad/filters/lowPass/resonance", val.round(0.01));
+					msg.postln;
+				},
+				'/synthPad/filters/lowPass/resonance'
+			);
+
+			/* ----- HP Filter ----- */
+			/* ----- CutOff Frequency ----- */
+			OSCdef.new(
+				\highPassFilterCutOff,
+				{
+					arg msg;
+					var val;
+					val = msg[1];
+					synth.set(\hpfCutoff, val);
+					~oscNetAddrTouchOSC.sendMsg("/synthPad/filters/highPass/cutOffFrequency", val.round(1));
+					msg.postln;
+				},
+				'/synthPad/filters/highPass/cutOffFrequency'
+			);
+			/* ----- Resonance ----- */
+			OSCdef.new(
+				\highPassFilterResonance,
+				{
+					arg msg;
+					var val;
+					val = msg[1];
+					synth.set(\hpfResonance, val);
+					~oscNetAddrTouchOSC.sendMsg("/synthPad/filters/highPass/resonance", val.round(0.01));
+					msg.postln;
+				},
+				'/synthPad/filters/highPass/resonance'
+			);
+
+			/* ----- LFO ----- */
+			/* ----- Frequency ----- */
+			OSCdef.new(
+				\lfoFrequency,
+				{
+					arg msg;
+					var val;
+					val = msg[1];
+					synth.set(\lfoFreq, val);
+					~oscNetAddrTouchOSC.sendMsg("/synthPad/lfo/frequency", val.round(0.01));
+					msg.postln;
+				},
+				'/synthPad/lfo/frequency'
+			);
+			/* ----- Amplitude ----- */
+			OSCdef.new(
+				\lfoAmpplitude,
+				{
+					arg msg;
+					var val;
+					val = msg[1];
+					synth.set(\lfoAmp, val);
+					~oscNetAddrTouchOSC.sendMsg("/synthPad/lfo/amplitude", val.round(0.01));
+					msg.postln;
+				},
+				'/synthPad/lfo/amplitude'
+			);
+
+			/* ----- Envelope ----- */
+			/* ----- Attack ----- */
+			OSCdef.new(
+				\synthAttack,
+				{
+					arg msg;
+					var val;
+					val = msg[1];
+					synth.set(\adsrA, val);
+					~oscNetAddrTouchOSC.sendMsg("/synthPad/envelope/attack", val.round(0.01));
+					msg.postln;
+				},
+				'/synthPad/envelope/attack'
+			);
+			/* ----- Decay ----- */
+			OSCdef.new(
+				\synthDecay,
+				{
+					arg msg;
+					var val;
+					val = msg[1];
+					synth.set(\adsrD, val);
+					~oscNetAddrTouchOSC.sendMsg("/synthPad/envelope/decay", val.round(0.01));
+					msg.postln;
+				},
+				'/synthPad/envelope/decay'
+			);
+			/* ----- Sustain ----- */
+			OSCdef.new(
+				\synthSustain,
+				{
+					arg msg;
+					var val;
+					val = msg[1];
+					synth.set(\adsrS, val);
+					~oscNetAddrTouchOSC.sendMsg("/synthPad/envelope/sustain", val.round(0.01));
+					msg.postln;
+				},
+				'/synthPad/envelope/sustain'
+			);
+			/* -----Release ----- */
+			OSCdef.new(
+				\synthRelease,
+				{
+					arg msg;
+					var val;
+					val = msg[1];
+					synth.set(\adsrR, val);
+					~oscNetAddrTouchOSC.sendMsg("/synthPad/envelope/release", val.round(0.01));
+					msg.postln;
+				},
+				'/synthPad/envelope/release'
+			);
 		});
 	);
 });
