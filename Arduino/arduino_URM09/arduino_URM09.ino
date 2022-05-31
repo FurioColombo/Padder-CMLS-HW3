@@ -1,9 +1,11 @@
 #define MAX_RANG (520)
 #define ADC_SOLUTION (1023.0)
 #define DELAY (200)
+
 int oldMidi;
 int control;
 int controlDistance;
+
 
 // the setup routine runs once when you press reset:
 void setup() {
@@ -23,35 +25,36 @@ void loop() {
   //BLACK NOTES
   if ((semitoneDistance > 2) && (semitoneDistance < 13)){
     if ((semitoneDistance > 2)&&(semitoneDistance < 5)){ //C#
-    if (oldMidi!=49){
-      delay(DELAY);
-      control = analogRead(A1);
-      controlDistance = (control * MAX_RANG)/(ADC_SOLUTION);
-      if ((controlDistance > 2) && (controlDistance < 5)){
-      if (oldMidi!=0){
-        Serial.println(oldMidi);
-        Serial.print("s");
+      if (oldMidi!=49){
+        delay(DELAY);
+        control = analogRead(A1);
+        controlDistance = (control * MAX_RANG)/(ADC_SOLUTION);
+        if ((controlDistance > 2) && (controlDistance < 5)){
+          if (oldMidi!=0){
+            Serial.print(oldMidi);
+            Serial.println("s");
+          }
+          Serial.print(49);
+          Serial.println("b");
+          oldMidi = 49;
+        }
       }
-      Serial.println(49);
-      Serial.print("b");
-      oldMidi = 49;
     }
-    }
-    }
+    // numbers are not cm but come from testing
     if ((semitoneDistance > 4)&&(semitoneDistance < 7)){ //D#
-    if (oldMidi!=51){
-      delay(DELAY);
-      control = analogRead(A1);
-      controlDistance = (control * MAX_RANG)/(ADC_SOLUTION);
-      if ((controlDistance > 4) && (controlDistance < 7)){
-      if (oldMidi!=0){
-        Serial.println(oldMidi);
-        Serial.print("s");
+      if (oldMidi!=51){
+        delay(DELAY);
+        control = analogRead(A1);
+        controlDistance = (control * MAX_RANG)/(ADC_SOLUTION);
+        if ((controlDistance > 4) && (controlDistance < 7)){
+          if (oldMidi!=0){
+            Serial.print(oldMidi);
+            Serial.println("s");
+          }
+          Serial.print(51);
+          Serial.println("b");
+          oldMidi = 51;
       }
-      Serial.println(51);
-      Serial.print("b");
-      oldMidi = 51;
-    }
     }
   }
   if ((semitoneDistance > 6)&&(semitoneDistance < 9)){ //F#
@@ -60,13 +63,13 @@ void loop() {
       control = analogRead(A1);
       controlDistance = (control * MAX_RANG)/(ADC_SOLUTION);
       if ((controlDistance > 6) && (controlDistance < 9)){
-      if (oldMidi!=0){
-        Serial.println(oldMidi);
-        Serial.print("s");
-      }
-      Serial.println(54);
-      Serial.print("b");
-      oldMidi = 54;
+        if (oldMidi!=0){
+          Serial.print(oldMidi);
+          Serial.println("s");
+        }
+        Serial.print(54);
+        Serial.println("b");
+        oldMidi = 54;
     }
     }
   }
@@ -77,11 +80,11 @@ void loop() {
       controlDistance = (control * MAX_RANG)/(ADC_SOLUTION);
       if ((controlDistance > 8) && (controlDistance < 11)){
       if (oldMidi!=0){
-        Serial.println(oldMidi);
-        Serial.print("s");
+        Serial.print(oldMidi);
+        Serial.println("s");
       }
-      Serial.println(56);
-      Serial.print("b");
+      Serial.print(56);
+      Serial.println("b");
       oldMidi = 56;
     }
     }
@@ -93,11 +96,11 @@ void loop() {
       controlDistance = (control * MAX_RANG)/(ADC_SOLUTION);
       if ((controlDistance > 10) && (controlDistance < 13)){
       if (oldMidi!=0){
-        Serial.println(oldMidi);
-        Serial.print("s");
+        Serial.print(oldMidi);
+        Serial.println("s");
       }
-      Serial.println(58);
-      Serial.print("b");
+      Serial.print(58);
+      Serial.println("b");
       oldMidi = 58;
     }
     }
@@ -106,35 +109,19 @@ void loop() {
 
 
   //WHITE NOTES
-  else if ((toneDistance > 2) && (toneDistance < 27)){
-    /*if ((toneDistance > 2)&&(toneDistance < 6)){
-    if (oldMidi!=48){
-      delay(DELAY);
-      control = analogRead(A0);
-      controlDistance = (control * MAX_RANG)/(ADC_SOLUTION);
-      if ((controlDistance > 2) && (controlDistance < 6)){
-      if (oldMidi!=0){
-        Serial.println(oldMidi);
-        Serial.print("s");
-      }
-      Serial.println(48);
-      Serial.print("w");
-      oldMidi = 48;
-    }
-    }
-  }*/
-    if ((toneDistance > 5)&&(toneDistance < 9)){ //C 
+  else if ((toneDistance > 2) && (toneDistance < 27)){ //C
+    if ((toneDistance > 5)&&(toneDistance < 9)){
     if (oldMidi!=48){
       delay(DELAY);
       control = analogRead(A0);
       controlDistance = (control * MAX_RANG)/(ADC_SOLUTION);
       if ((controlDistance > 5) && (controlDistance < 9)){
       if (oldMidi!=0){
-        Serial.println(oldMidi);
-        Serial.print("s");
+        Serial.print(oldMidi);
+        Serial.println("s");
       }
-      Serial.println(48);
-      Serial.print("w");
+      Serial.print(48);
+      Serial.println("w");
       oldMidi = 48;
     }
     }
@@ -146,11 +133,11 @@ void loop() {
       controlDistance = (control * MAX_RANG)/(ADC_SOLUTION);
       if ((controlDistance > 8) && (controlDistance < 12)){
       if (oldMidi!=0){
-        Serial.println(oldMidi);
-        Serial.print("s");
+        Serial.print(oldMidi);
+        Serial.println("s");
       }
-      Serial.println(50);
-      Serial.print("w");
+      Serial.print(50);
+      Serial.println("w");
       oldMidi = 50;
     }
     }
@@ -162,11 +149,11 @@ void loop() {
       controlDistance = (control * MAX_RANG)/(ADC_SOLUTION);
       if ((controlDistance > 11) && (controlDistance < 15)){
      if (oldMidi!=0){
-        Serial.println(oldMidi);
-        Serial.print("s");
+        Serial.print(oldMidi);
+        Serial.println("s");
       }
-      Serial.println(52);
-      Serial.print("w");
+      Serial.print(52);
+      Serial.println("w");
       oldMidi = 52;
     }
     }
@@ -178,11 +165,11 @@ void loop() {
       controlDistance = (control * MAX_RANG)/(ADC_SOLUTION);
       if ((controlDistance > 14) && (controlDistance < 18)){
       if (oldMidi!=0){
-        Serial.println(oldMidi);
-        Serial.print("s");
+        Serial.print(oldMidi);
+        Serial.println("s");
       }
-      Serial.println(53);
-      Serial.print("w");
+      Serial.print(53);
+      Serial.println("w");
       oldMidi = 53;
     }
     }
@@ -194,11 +181,11 @@ void loop() {
       controlDistance = (control * MAX_RANG)/(ADC_SOLUTION);
       if ((controlDistance > 17) && (controlDistance < 21)){
       if (oldMidi!=0){
-        Serial.println(oldMidi);
-        Serial.print("s");
+        Serial.print(oldMidi);
+        Serial.println("s");
       }
-      Serial.println(55);
-      Serial.print("w");
+      Serial.print(55);
+      Serial.println("w");
       oldMidi = 55;
     }
     }
@@ -210,11 +197,11 @@ void loop() {
       controlDistance = (control * MAX_RANG)/(ADC_SOLUTION);
       if ((controlDistance > 20) && (controlDistance < 24)){
       if (oldMidi!=0){
-        Serial.println(oldMidi);
-        Serial.print("s");
+        Serial.print(oldMidi);
+        Serial.println("s");
       }
-      Serial.println(57);
-      Serial.print("w");
+      Serial.print(57);
+      Serial.println("w");
       oldMidi = 57;
     }
     }
@@ -226,11 +213,11 @@ void loop() {
       controlDistance = (control * MAX_RANG)/(ADC_SOLUTION);
       if ((controlDistance > 23) && (controlDistance < 27)){
       if (oldMidi!=0){
-        Serial.println(oldMidi);
-        Serial.print("s");
+        Serial.print(oldMidi);
+        Serial.println("s");
       }
-      Serial.println(59);
-      Serial.print("w");
+      Serial.print(59);
+      Serial.println("w");
       oldMidi = 59;
     }
     }
@@ -240,11 +227,11 @@ void loop() {
   //STOP NOTE
   else {
     if (oldMidi != 0){
-      Serial.println(oldMidi);
-      Serial.print("s");
+      Serial.print(oldMidi);
+      Serial.println("s");
       }
      oldMidi = 0;
     }
     
-  delay(20);        // delay between reads
+  delay(20);        // delay in between reads for stability
 }
