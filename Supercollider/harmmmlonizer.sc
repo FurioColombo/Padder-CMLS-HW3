@@ -87,7 +87,7 @@ s.waitForBoot({
 		~serialMidiMessage = 1;
 		/* ----- OSC ----- */
 		~oscNetAddrProcessing = NetAddr.new("127.0.0.1", 7777);
-		~oscNetAddrTouchOSC = NetAddr.new("127.0.0.1", 9000);
+		~oscNetAddrTouchOSC = NetAddr.new("192.168.43.183", 9000);
 		~keyNum = 0;
 		~keysLabels = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 		~scaleNum = 0;
@@ -338,7 +338,7 @@ s.waitForBoot({
 	/* ----- Mixer -----
 	Mixes the mono input and the pitch shifted voices to a stereo ouput. */
 	(
-		h = SynthDef.new(\mixer, { arg master = 1, wet = 0.5, reverbMix = 0.5, roomDimension = 0.5, reverbHighDamp = 0.5, lpfCutoff = 2000, hpfCutoff = 2000, lfoFreq = 10, lfoAmp = 0.075, lpfResonance = 1, hpfResonance = 1, adsrA = 0.1, adsrD = 0.05, adsrS = 0.5, adsrR = 1.0;
+		h = SynthDef.new(\mixer, { arg master = 1, wet = 0.5, reverbMix = 0.5, roomDimension = 0.5, reverbHighDamp = 0.5, lpfCutoff = 4000, hpfCutoff = 100, lfoFreq = 10, lfoAmp = 0.075, lpfResonance = 0, hpfResonance = 0, adsrA = 0.1, adsrD = 0.05, adsrS = 0.5, adsrR = 1.0;
 			var monoInput, stereoInput, stereoOutput, voiceStereoSignals, selectedMode, env, gen, lfo;
 			monoInput = In.ar(~inputAudioBus, 1);
 			stereoInput = Pan2.ar((1 - wet) * monoInput, 0.0);
@@ -1005,11 +1005,27 @@ s.waitForBoot({
 				\keySelection,
 				{
 					arg msg;
+					var currentPos, currentScaleFreqs;
 					if (~keyNum == 11,
 						{ ~keyNum = 0; },
 						{ ~keyNum = ~keyNum + 1; }
 					);
 					~keyControlBus.set(~keyNum);
+					currentPos = ~keyNum;
+					~currentKey = ~keyNum;
+					currentScaleFreqs = Array.fill(~scales[~currentScale].size, {arg i;
+						var note;
+						// pull the freq for the current note
+						note = ~chromaticFreqs.wrapAt(currentPos);
+						// move to the next note for next time
+						currentPos = currentPos + ~scales[~currentScale].at(i);
+						note;
+					});
+					~rootIndexControlBus.set(currentScaleFreqs.detectIndex({
+							arg item, i;
+							item == ~chromaticFreqs.at(~serialMidiNote % 12);
+						})
+					);
 					~oscNetAddrTouchOSC.sendMsg("/harmonizer/pitchShifter/keyLabel", ~keysLabels.at(~keyNum));
 					("Key:" + ~keysLabels.at(~keyNum)).postln;
 				},
@@ -1020,11 +1036,32 @@ s.waitForBoot({
 				\scaleSelection,
 				{
 					arg msg;
+					var currentPos, currentScaleFreqs;
 					if (~scaleNum == 16,
 						{ ~scaleNum = 0; },
 						{ ~scaleNum = ~scaleNum + 1; }
 					);
+					currentPos = ~currentKey;
 					~scaleControlBus.set(~scaleNum);
+					~currentScale = ~scaleNum;
+					currentScaleFreqs = Array.fill(~scales[~scaleNum].size, {arg i;
+						var note;
+						// pull the freq for the current note
+						note = ~chromaticFreqs.wrapAt(currentPos);
+						// move to the next note for next time
+						currentPos = currentPos + ~scales[~scaleNum].at(i);
+						note;
+					});
+					~rootIndexControlBus.set(currentScaleFreqs.detectIndex({
+							arg item, i;
+							item == ~chromaticFreqs.at(~serialMidiNote % 12);
+						})
+					);
+
+
+
+
+
 					~oscNetAddrTouchOSC.sendMsg("/harmonizer/pitchShifter/scaleLabel", ~scalesLabels.at(~scaleNum));
 					("Scale:" + ~scalesLabels.at(~scaleNum)).postln;
 				},
@@ -1215,10 +1252,10 @@ s.waitForBoot({
 			/* ----- Default Parameters ----- */
 			~oscNetAddrTouchOSC.sendMsg("/synthPad/synth1/gain", 1);
 			~oscNetAddrTouchOSC.sendMsg("/synthPad/synth2/gain", 0.12);
-			~oscNetAddrTouchOSC.sendMsg("/synthPad/filters/lowPass/cutOffFrequency", 2000);
-			~oscNetAddrTouchOSC.sendMsg("/synthPad/filters/lowPass/resonance", 1);
-			~oscNetAddrTouchOSC.sendMsg("/synthPad/filters/highPass/cutOffFrequency", 2000);
-			~oscNetAddrTouchOSC.sendMsg("/synthPad/filters/highPass/resonance", 1);
+			~oscNetAddrTouchOSC.sendMsg("/synthPad/filters/lowPass/cutOffFrequency", 4000);
+			~oscNetAddrTouchOSC.sendMsg("/synthPad/filters/lowPass/resonance", 0);
+			~oscNetAddrTouchOSC.sendMsg("/synthPad/filters/highPass/cutOffFrequency", 100);
+			~oscNetAddrTouchOSC.sendMsg("/synthPad/filters/highPass/resonance", 0);
 			~oscNetAddrTouchOSC.sendMsg("/synthPad/lfo/amplitude", 0);
 			~oscNetAddrTouchOSC.sendMsg("/synthPad/lfo/frequency", 0);
 			~oscNetAddrTouchOSC.sendMsg("/synthPad/envelope/attack", 0.1);
@@ -1234,7 +1271,7 @@ s.waitForBoot({
 					arg msg;
 					var val;
 					val = msg[1];
-					outputMixer.set(\sinTableGain, val);
+					synth.set(\sinTableGain, val);
 					~oscNetAddrTouchOSC.sendMsg("/synthPad/synth1/gain", val.round(0.01));
 					msg.postln;
 				},
@@ -1247,7 +1284,7 @@ s.waitForBoot({
 					arg msg;
 					var val;
 					val = msg[1];
-					outputMixer.set(\chebTableGain, val);
+					synth.set(\chebTableGain, val);
 					~oscNetAddrTouchOSC.sendMsg("/synthPad/synth2/gain", val.round(0.01));
 					msg.postln;
 				},
