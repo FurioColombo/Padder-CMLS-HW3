@@ -12,14 +12,14 @@ Thanks to the small dimensions of the Arduino board and the sensors, it’s also
 ## GUI and Available Controls
 The layout that was developed consists of three different pages. 
 
-### General Controls
-The first page is composed of two main sections: **Master** and **Pitch Shifter**. 
-
 <p float="left">
   <img src="./Assets/Images/GeneralControls-TouchOSC-GUI.png" width="330" />
   <img src="./Assets/Images/PitchedVoicesControls-TouchOSC-GUI.png" width="330" /> 
   <img src="./Assets/Images/SynthPadControls-TouchOSC-GUI.png" width="330" />
 </p>
+
+### General Controls
+The first page is composed of two main sections: **Master** and **Pitch Shifter**. 
 
 
 The **Master** section allows the musician to set **Master gain** and **Dry/Wet** balance between input signal and pitched voices. Furthermore, some controls over **reverberation effect** to be accomplished on the final output are provided. Indeed, three knobs are available for **Room Size**, **Dry Wet** and **High Damp** parameters.
