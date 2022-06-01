@@ -17,7 +17,7 @@ Thanks to the small dimensions of the Arduino board and the sensors, it’s also
 ## GUI and Available Controls
 The layout that was developed consists of three different pages. 
 
-<p float="left">
+<p align="center">
   <img src="./Assets/Images/GeneralControls-TouchOSC-GUI.png" width="260" />
   <img src="./Assets/Images/PitchedVoicesControls-TouchOSC-GUI.png" width="260" /> 
   <img src="./Assets/Images/SynthPadControls-TouchOSC-GUI.png" width="260" />
