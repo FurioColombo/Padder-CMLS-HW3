@@ -16,9 +16,9 @@ The layout that was developed consists of three different pages.
 The first page is composed of two main sections: **Master** and **Pitch Shifter**. 
 
 <p float="left">
-  <img src="./Assets/Images/GeneralControls-TouchOSC-GUI.png" width="300" />
-  <img src="./Assets/Images/PitchedVoicesControls-TouchOSC-GUI.png" width="300" /> 
-  <img src="./Assets/Images/SynthPadControls-TouchOSC-GUI.png" width="300" />
+  <img src="./Assets/Images/GeneralControls-TouchOSC-GUI.png" width="350" />
+  <img src="./Assets/Images/PitchedVoicesControls-TouchOSC-GUI.png" width="350" /> 
+  <img src="./Assets/Images/SynthPadControls-TouchOSC-GUI.png" width="350" />
 </p>
 
 
