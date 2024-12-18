@@ -33,7 +33,6 @@ The **Pitch Shifter** section makes possible for the artist to set the **key** a
 ### Pitched Voices
 The **Pitched Voices** pages is divided into four sections, one for each voice, as four voices harmony is supported. 
 
-
 For each section, **Gain** and **Pan** knobs make possible to set voice gain and panning values. **Voice Interval** slider allows to set the interval for pitch shifting, whereas the two buttons on its left side enable to set the **Number of Octaves** and **Direction for pitch shifting**, which can be accomplished within the same octave as the input note or one/two octaves upward/downward. 
 Moreover, some controls over **Feedback Delay Line** are available. The musician can choose the desired Feedback Mode by clicking on the **FeedbackMode** button and set **DelayTime** and **Feedback Amount** values for feedback effect to be applied on the single pitched voice.
 
@@ -41,14 +40,11 @@ Moreover, some controls over **Feedback Delay Line** are available. The musician
 The third page is devoted to **Synth Pad** controls and it consists of two sections.
 As the synth pad sound is a mixture of two different sounds, the first section provides the musician with the possibility of controlling the balance between them. Indeed, two **Gain** knobs, one for each synth, are available.
 
+The second section makes possible to control parameters related to **effects** and **ADSR envelope** to be applied on the synth sound. As a matter of fact, it consists of three subsections. The first one provides controls over **Frequency** and **Resonance** of the **High Pass** and **Low Pass filters**. Then, two knobs allows the musician to set **Amplitude** and **Frequency** of the **LFO**. Moreover, four sliders are available to control **Attack**, **Decay**, **Sustain** and **Release** of the **ADSR envelope**.
+
 
 ## Authors 
 - [Lelio Casale](https://github.com/Leliocasale) 
 - [Marco Furio Colombo](https://github.com/FurioColombo)
 - [Marco Muraro](https://github.com/marcomuraro4)
 - [Matteo Pettenò](https://github.com/mpetteno-polimi)
-
-
-The second section makes possible to control parameters related to **effects** and **ADSR envelope** to be applied on the synth sound. As a matter of fact, it consists of three subsections. The first one provides controls over **Frequency** and **Resonance** of the **High Pass** and **Low Pass filters**. Then, two knobs allows the musician to set **Amplitude** and **Frequency** of the **LFO**. Moreover, four sliders are available to control **Attack**, **Decay**, **Sustain** and **Release** of the **ADSR envelope**.
-
-***You're now ready to play with Padder! Let's create some music!***
